@@ -1,12 +1,12 @@
 // 画布组 Bypass 控制器 · 前端扩展（单包双语）
-// 开发者节点：互斥组名输入框 + 「应用到用户组件」「恢复全部组为启用」两个按钮
-// 用户节点：连接开发者「配置」后，自动生成每个互斥组一个带名字的按钮，点按钮整组切换
-// 非互斥组完全不碰（保持不变）
+// 开发者节点：Bypass组名输入框 + 「应用到用户组件」「恢复全部组为启用」两个按钮
+// 用户节点：连接开发者「配置」后，自动生成每个Bypass组一个带名字的按钮，点按钮整组切换
+// 非Bypass组完全不碰（保持不变）
 // 语言由 web/language.json 决定：zh / en
 import { app } from "../../../scripts/app.js";
 
-const DEV_NODE_CLASS = "Mutex Group Controller (互斥组控制器)";
-const USER_NODE_CLASS = "Mutex Group User Controller (画布组控制器-用户)";
+const DEV_NODE_CLASS = "Bypass Group Controller (画布组Bypass控制器)";
+const USER_NODE_CLASS = "Bypass Group User Controller (画布组Bypass控制器-用户)";
 
 const MODE_ALWAYS = 0;  // 正常启用
 const MODE_BYPASS = 4;  // 绕过（Ctrl+B）
@@ -16,30 +16,30 @@ const I18N = {
     zh: {
         devApply: "▶ 应用到用户组件",
         devRestore: "↩ 恢复全部组为启用",
-        applyTip: "把当前互斥组名同步给所有已连接的用户组件，刷新其按钮。",
+        applyTip: "把当前Bypass组名同步给所有已连接的用户组件，刷新其按钮。",
         restoreTip: "把所有画布组的所有节点恢复为启用状态。",
         noDev: "⚠ 请先连接开发者节点",
         noDevTip: "从『画布组 Bypass 控制器（开发者）』的「配置」输出拉线到本节点。",
-        noNames: "⚠ 开发者未填写互斥组名",
-        noNamesTip: "请在开发者节点的「互斥组名」里每行填一个画布 Group 标题。",
-        btnTip: (name) => `开启「${name}」，其余互斥组 Bypass；非互斥组不受影响。`,
+        noNames: "⚠ 开发者未填写Bypass组名",
+        noNamesTip: "请在开发者节点的「Bypass组名」里每行填一个画布 Group 标题。",
+        btnTip: (name) => `开启「${name}」，其余Bypass组 Bypass；非Bypass组不受影响。`,
         applied: (n) => `[canvas-bypass] 已应用到 ${n} 个用户组件`,
         // 输入名（与后端 I18N 保持一致，用于查找 widget）
-        groupInput: "互斥组名",
+        groupInput: "Bypass组名",
         configInput: "配置",
     },
     en: {
         devApply: "▶ Apply to User Nodes",
         devRestore: "↩ Restore All Groups",
-        applyTip: "Sync current mutex group names to all connected user nodes and refresh their buttons.",
+        applyTip: "Sync current Bypass group names to all connected user nodes and refresh their buttons.",
         restoreTip: "Restore all nodes in every canvas group to Enabled.",
         noDev: "⚠ Connect Dev node first",
         noDevTip: "Drag a link from the Dev node's 'Config' output to this node.",
-        noNames: "⚠ No mutex groups set in Dev",
-        noNamesTip: "Enter one canvas Group title per line in the Dev node's 'Mutex Group Names' field.",
-        btnTip: (name) => `Enable "${name}"; all other mutex groups Bypass. Non-mutex groups are untouched.`,
+        noNames: "⚠ No Bypass groups set in Dev",
+        noNamesTip: "Enter one canvas Group title per line in the Dev node's 'Bypass Group Names' field.",
+        btnTip: (name) => `Enable "${name}"; all other Bypass groups Bypass. Non-Bypass groups are untouched.`,
         applied: (n) => `[canvas-bypass] Applied to ${n} user node(s)`,
-        groupInput: "Mutex Group Names",
+        groupInput: "Bypass Group Names",
         configInput: "Config",
     },
 };
@@ -79,7 +79,7 @@ function parseNames(text) {
         .filter(Boolean);
 }
 
-// 从开发者节点读互斥组名（兼容中英输入名）
+// 从开发者节点读Bypass组名（兼容中英输入名）
 function devNames(dev) {
     const w = findWidgetByNames(dev, [I18N.zh.groupInput, I18N.en.groupInput]);
     return w ? parseNames(w.value) : [];
@@ -122,14 +122,14 @@ function getConnectedDev(userNode) {
     return dev;
 }
 
-// 核心：只切换互斥组。选中组 -> ALWAYS，其余互斥组 -> BYPASS。非互斥组一律不碰。
+// 核心：只切换Bypass组。选中组 -> ALWAYS，其余Bypass组 -> BYPASS。非Bypass组一律不碰。
 function applyGroup(dev, selected) {
     const names = devNames(dev);
     if (!names.length || !selected || !names.includes(selected)) return;
     const groups = getGroups();
     const graph = app.graph;
     for (const g of groups) {
-        if (!names.includes(g.title)) continue; // 非互斥组：完全不动
+        if (!names.includes(g.title)) continue; // 非Bypass组：完全不动
         const target = (g.title === selected) ? MODE_ALWAYS : MODE_BYPASS;
         for (const n of getInnerNodes(g)) {
             if (n.mode !== target) {
@@ -165,14 +165,14 @@ function rebuildUserButtons(un) {
     const names = dev ? devNames(dev) : [];
 
     // 用户节点除按钮外无任何控件
-    un.widgets = (un.widgets || []).filter((w) => !w.__mutexUserBtn);
+    un.widgets = (un.widgets || []).filter((w) => !w.__bypassUserBtn);
 
     if (!dev) {
         const b = un.addWidget("button", T.noDev, null, () => {});
-        if (b) { b.serialize = false; b.__mutexUserBtn = true; b.tooltip = T.noDevTip; }
+        if (b) { b.serialize = false; b.__bypassUserBtn = true; b.tooltip = T.noDevTip; }
     } else if (!names.length) {
         const b = un.addWidget("button", T.noNames, null, () => {});
-        if (b) { b.serialize = false; b.__mutexUserBtn = true; b.tooltip = T.noNamesTip; }
+        if (b) { b.serialize = false; b.__bypassUserBtn = true; b.tooltip = T.noNamesTip; }
     } else {
         for (const name of names) {
             const b = un.addWidget("button", name, null, () => {
@@ -181,7 +181,7 @@ function rebuildUserButtons(un) {
             });
             if (b) {
                 b.serialize = false;
-                b.__mutexUserBtn = true;
+                b.__bypassUserBtn = true;
                 b.tooltip = T.btnTip(name);
             }
         }
@@ -228,8 +228,8 @@ function applyToUsers(dev) {
 // 刷新开发者节点按钮文字（语言切换后）
 function refreshDevButtons() {
     for (const node of (app.graph && app.graph.nodes) ? app.graph.nodes : []) {
-        if (node.comfyClass !== DEV_NODE_CLASS || !node.__mutexDevInstalled) continue;
-        const btns = (node.widgets || []).filter((w) => w.__mutexDevBtn);
+        if (node.comfyClass !== DEV_NODE_CLASS || !node.__bypassDevInstalled) continue;
+        const btns = (node.widgets || []).filter((w) => w.__bypassDevBtn);
         if (btns[0]) { btns[0].name = T.devApply; btns[0].tooltip = T.applyTip; }
         if (btns[1]) { btns[1].name = T.devRestore; btns[1].tooltip = T.restoreTip; }
     }
@@ -246,13 +246,13 @@ app.registerExtension({
     nodeCreated(node) {
         // 开发者节点：只有两个按钮
         if (node.comfyClass === DEV_NODE_CLASS) {
-            if (node.__mutexDevInstalled) return;
-            node.__mutexDevInstalled = true;
+            if (node.__bypassDevInstalled) return;
+            node.__bypassDevInstalled = true;
 
             const btnApply = node.addWidget("button", T.devApply, null, () => applyToUsers(node));
             const btnRestore = node.addWidget("button", T.devRestore, null, () => doRestoreAll());
             [btnApply, btnRestore].forEach((b) => {
-                if (b) { b.serialize = false; b.__mutexDevBtn = true; }
+                if (b) { b.serialize = false; b.__bypassDevBtn = true; }
             });
             if (btnApply) btnApply.tooltip = T.applyTip;
             if (btnRestore) btnRestore.tooltip = T.restoreTip;
@@ -261,8 +261,8 @@ app.registerExtension({
 
         // 用户节点
         if (node.comfyClass === USER_NODE_CLASS) {
-            if (node.__mutexUserInstalled) return;
-            node.__mutexUserInstalled = true;
+            if (node.__bypassUserInstalled) return;
+            node.__bypassUserInstalled = true;
             userNodes.add(node);
             const origRemove = node.onRemoved;
             node.onRemoved = function (...args) {

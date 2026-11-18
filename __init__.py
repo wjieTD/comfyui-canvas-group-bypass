@@ -5,9 +5,9 @@
 语言切换：编辑 web/language.json 的 "language" 字段（"zh" / "en"），重启 ComfyUI 生效。
 前端按钮/tooltip 与后端显示名/tooltip 会同步切换。
 
-- 画布组 Bypass 控制器（开发者）：互斥组名输入框 + 应用到用户组件 / 恢复全部组为启用。
-- 画布组 Bypass 控制器（用户）：连接开发者配置后，自动生成每个互斥组一个按钮。
-  点按钮即整组 Bypass / 启用，非互斥组完全不动，无需运行工作流。
+- 画布组 Bypass 控制器（开发者）：Bypass组名输入框 + 应用到用户组件 / 恢复全部组为启用。
+- 画布组 Bypass 控制器（用户）：连接开发者配置后，自动生成每个Bypass组一个按钮。
+  点按钮即整组 Bypass / 启用，非Bypass组完全不动，无需运行工作流。
 
 前端 JS 位于 web/ 目录，通过 WEB_DIRECTORY 注册。
 """
@@ -32,9 +32,9 @@ def _detect_language():
 
 LANG = _detect_language()
 
-from .mutex_group_controller import (
-    MutexGroupController,
-    MutexGroupUserController,
+from .bypass_group_controller import (
+    BypassGroupController,
+    BypassGroupUserController,
     NODE_NAME as GROUP_NODE_NAME,
     USER_NODE_NAME as USER_NODE_NAME,
     set_language,
@@ -44,8 +44,8 @@ from .mutex_group_controller import (
 set_language(LANG)
 
 NODE_CLASS_MAPPINGS = {
-    GROUP_NODE_NAME: MutexGroupController,
-    USER_NODE_NAME: MutexGroupUserController,
+    GROUP_NODE_NAME: BypassGroupController,
+    USER_NODE_NAME: BypassGroupUserController,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {

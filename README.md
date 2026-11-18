@@ -1,14 +1,8 @@
 # 画布组 Bypass 控制器 / Canvas Group Bypass Controller
 
-[![ComfyUI](https://img.shields.io/badge/ComfyUI-custom%20node-blue)](https://github.com/comfyanonymous/ComfyUI)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Language](https://img.shields.io/badge/i18n-中文%20%7C%20English-orange)](#切换语言--switch-language)
+ComfyUI 自定义节点：把画布上多个 Group 设为 Bypass 切换，**一次只允许启用一个组**。点按钮即整组切换 `Bypass（Ctrl+B）` / 启用，无需运行工作流，非 Bypass 组完全不受影响。
 
-ComfyUI 自定义节点：把画布上多个 Group 设为互斥，**一次只允许启用一个组**。点按钮即整组切换 `Bypass（Ctrl+B）` / 启用，无需运行工作流，非互斥组完全不受影响。
-
-A ComfyUI custom node that makes canvas Groups mutually exclusive — **only one group enabled at a time**. One click switches a whole group between `Bypass (Ctrl+B)` and Enabled. No workflow run needed; non-mutex groups are never touched.
-
-![预览 / Preview](docs/preview.png)
+A ComfyUI custom node that toggles canvas Groups between Bypass and Enabled — **only one group enabled at a time**. One click switches a whole group between `Bypass (Ctrl+B)` and Enabled. No workflow run needed; non-Bypass groups are never touched.
 
 ---
 
@@ -41,8 +35,8 @@ Edit the `language` field in `web/language.json`, then **restart ComfyUI**:
 
 节点显示名、输入框标签、按钮文字、提示会一起切换。Node titles, input labels, button text and tooltips switch together.
 
-> 内部 id 保持不变，切换语言不会破坏已有工作流连线。
-> Internal ids stay unchanged — switching language will not break existing workflows.
+> 内部节点 id 为 `Bypass Group Controller (...)` / `Bypass Group User Controller (...)`。切换语言只改显示文案，不改变 id；若从更早版本的节点 id 升级，旧工作流里的节点需重新添加。
+> Internal node ids are `Bypass Group Controller (...)` / `Bypass Group User Controller (...)`. Language switch changes display text only, not ids; when upgrading from older node ids, re-add nodes in existing workflows.
 
 ---
 
@@ -51,7 +45,7 @@ Edit the `language` field in `web/language.json`, then **restart ComfyUI**:
 ### 开发者节点 · Dev node
 `画布组Bypass控制器（开发者）` / `Canvas Group Bypass Controller (Dev)`
 
-- **互斥组名 / Mutex Group Names**：每行填一个画布 Group 的**标题**（区分大小写、空格）。只有列出的组参与互斥。
+- **Bypass组名 / Bypass Group Names**：每行填一个画布 Group 的**标题**（区分大小写、空格）。只有列出的组参与Bypass。
   One canvas Group **title** per line (case & space sensitive). Only listed groups participate.
 - **▶ 应用到用户组件 / Apply to User Nodes**：把组名同步给所有已连线的用户节点，刷新按钮。改完组名后点一次。
   Sync group names to all connected user nodes and refresh buttons. Click once after editing names.
@@ -63,10 +57,10 @@ Edit the `language` field in `web/language.json`, then **restart ComfyUI**:
 
 - 只有一个「配置 / Config」输入，接开发者节点的「配置 / Config」输出。
   One `Config` input, connect to the Dev node's `Config` output.
-- 连接后自动生成：每个互斥组一个按钮（按钮名 = 组名）。**无任何其它控件、无输出。**
-  Auto-generates one button per mutex group (label = group title). **No other widgets, no output.**
-- 点某组按钮 → 该组启用，其余互斥组 Bypass；非互斥组不动。
-  Click a group's button → that group Enabled, other mutex groups Bypass; non-mutex groups untouched.
+- 连接后自动生成：每个Bypass组一个按钮（按钮名 = 组名）。**无任何其它控件、无输出。**
+  Auto-generates one button per Bypass group (label = group title). **No other widgets, no output.**
+- 点某组按钮 → 该组启用，其余Bypass组 Bypass；非Bypass组不动。
+  Click a group's button → that group Enabled, other Bypass groups Bypass; non-Bypass groups untouched.
 
 ---
 
@@ -74,8 +68,8 @@ Edit the `language` field in `web/language.json`, then **restart ComfyUI**:
 
 1. 在画布上框好几个功能 Group，记下各自标题。
    Create several function Groups on canvas; note their titles.
-2. 加一个开发者节点，把标题逐行填进「互斥组名」，点「应用到用户组件」。
-   Add a Dev node, fill titles line by line into `Mutex Group Names`, click `Apply to User Nodes`.
+2. 加一个开发者节点，把标题逐行填进「Bypass组名」，点「应用到用户组件」。
+   Add a Dev node, fill titles line by line into `Bypass Group Names`, click `Apply to User Nodes`.
 3. 加用户节点，把开发者节点的「配置」连过来。
    Add a User node, connect the Dev node's `Config` output.
 4. 之后只点用户节点上的组名按钮即可切换，不用跑工作流。
@@ -96,7 +90,7 @@ Edit the `language` field in `web/language.json`, then **restart ComfyUI**:
 |---|---|
 | 启用 Enable | `mode = ALWAYS (0)` |
 | 绕过 Bypass | `mode = BYPASS (4)`，等同 Ctrl+B，不是 Mute |
-| 非互斥组 Non-mutex | 完全不读写，保持原样 Never read or written |
+| 非Bypass组 Non-Bypass | 完全不读写，保持原样 Never read or written |
 | 作用范围 Scope | 整个 Group 内所有节点 All nodes inside the Group |
 | 生效方式 When | 点按钮立即生效，无需 Queue Prompt Instant on button click |
 
@@ -127,18 +121,9 @@ Edit the `language` field in `web/language.json`, then **restart ComfyUI**:
 ```
 comfyui-canvas-group-bypass/
 ├── __init__.py                  # 节点注册 + 语言检测
-├── mutex_group_controller.py    # 后端节点定义 + 双语文案
+├── bypass_group_controller.py    # 后端节点定义 + 双语文案
 ├── web/
-│   ├── mutex_group_controller.js # 前端扩展（按钮 / Bypass 逻辑）
+│   ├── bypass_group_controller.js # 前端扩展（按钮 / Bypass 逻辑）
 │   └── language.json            # 语言配置：zh / en
-├── docs/
-│   └── preview.png              # 界面截图 Screenshot
-├── LICENSE                      # MIT
 └── README.md                    # 本文档 This doc
 ```
-
----
-
-## 许可 / License
-
-[MIT](LICENSE)
