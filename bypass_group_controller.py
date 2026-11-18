@@ -5,7 +5,7 @@
 语言由 web/language.json 决定，__init__.py 导入时调用 set_language() 设置。
 
 - BypassGroupController（开发者）：Bypass组名输入框 + 两个按钮（应用到用户组件 / 恢复全部组为启用），
-  输出两个「配置」槽（slot 1 兼容旧工作流连线）。
+  输出一个「配置」槽。
 - BypassGroupUserController（用户）：连接开发者「配置」后，前端自动生成每个Bypass组一个带名字的按钮，
   点按钮即开启该组、其余Bypass组 Bypass。非Bypass组完全不受影响。
 
@@ -24,7 +24,7 @@ I18N = {
     "zh": {
         "group_input": "Bypass组名",
         "config_input": "配置",
-        "ret_names": ("配置", "配置(旧版兼容)"),
+        "ret_names": ("配置",),
         "group_tooltip": (
             "每行一个『画布 Group 的标题』，只有这里列出的组参与Bypass。"
             "把默认示例替换为你的真实组名后，点节点上的「应用到用户组件」刷新用户按钮。"
@@ -45,7 +45,7 @@ I18N = {
     "en": {
         "group_input": "Bypass Group Names",
         "config_input": "Config",
-        "ret_names": ("Config", "Config (legacy)"),
+        "ret_names": ("Config",),
         "group_tooltip": (
             "One canvas Group title per line. Only listed groups participate in the Bypass. "
             "Replace the sample with your real group titles, then click 'Apply to User Nodes' "
@@ -82,7 +82,7 @@ def set_language(lang):
 
 class BypassGroupController:
     INPUT_NAME = I18N["zh"]["group_input"]
-    RETURN_TYPES = (CONFIG_TYPE, CONFIG_TYPE)
+    RETURN_TYPES = (CONFIG_TYPE,)
     RETURN_NAMES = I18N["zh"]["ret_names"]
     FUNCTION = "status"
     CATEGORY = "utils/logic"
@@ -101,13 +101,11 @@ class BypassGroupController:
             },
         }
 
-    # 两个槽位都输出配置：slot 0 供新连线，slot 1 兼容旧工作流原「配置」连线
-    # 同时兼容位置传参与关键字传参（输入名随语言变化）
+    # 兼容位置传参与关键字传参（输入名随语言变化）
     def status(self, value=None, **kwargs):
         if not isinstance(value, str):
             value = next((v for v in kwargs.values() if isinstance(v, str)), "")
-        val = value or ""
-        return (val, val)
+        return (value or "",)
 
 
 class BypassGroupUserController:

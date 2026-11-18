@@ -106,10 +106,6 @@ Edit the `language` field in `web/language.json`, then **restart ComfyUI**:
   检查填写的组名是否与画布 Group 标题**完全一致**（含大小写、空格、全角符号）。
   Check group titles match canvas Group titles **exactly** (case, spaces, full-width chars).
 
-- **报错 tuple index out of range / tuple index out of range error**
-  开发者节点必须保留两个输出槽（slot 0 新连线、slot 1 旧版兼容），勿删。
-  Keep both output slots on the Dev node (slot 0 new, slot 1 legacy). Do not delete them.
-
 - **改语言后界面没变 / Language change not applied**
   重启 ComfyUI 并强制刷新浏览器（Ctrl+F5）。
   Restart ComfyUI and hard-refresh the browser (Ctrl+F5).
